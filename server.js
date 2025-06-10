@@ -1,31 +1,35 @@
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const { Server } = require('socket.io');
+const io = new Server(http);
+const path = require('path');
 
-app.use(express.static('public'));
+// Sert les fichiers statiques comme script.js
+app.use(express.static(__dirname));
 
-const utilisateurs = {};
+// Sert le fichier index.html manuellement
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
+// Socket.io - gestion des messages
 io.on('connection', (socket) => {
-  socket.on('nouveau_user', (pseudo) => {
-    utilisateurs[socket.id] = pseudo;
-    socket.broadcast.emit('system', `${pseudo} a rejoint le tchat.`);
-  });
+  console.log('✅ Un utilisateur est connecté');
 
-  socket.on('message_chat', (data) => {
-    io.emit('message_chat', data);
-  });
+socket.on('chat message', (data) => {
+  io.emit('chat message', data);
+});
+
+
 
   socket.on('disconnect', () => {
-    const pseudo = utilisateurs[socket.id];
-    if (pseudo) {
-      io.emit('system', `${pseudo} a quitté le tchat.`);
-      delete utilisateurs[socket.id];
-    }
+    console.log('❌ Un utilisateur est déconnecté');
   });
 });
 
-http.listen(3000, () => {
-  console.log("Serveur lancé sur http://localhost:3000");
+// Lancement du serveur
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+  console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
 });

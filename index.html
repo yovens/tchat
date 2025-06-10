@@ -117,6 +117,10 @@
   <button id="toggleTheme" title="Changer de thème">☀️</button>
 
   <h1>💬 Tchat entre potes</h1>
+  <div class="input-container" style="margin-bottom:10px;">
+  <input id="pseudoInput" placeholder="Ton pseudo…" autocomplete="off">
+</div>
+
   <ul id="messages"></ul>
 
   <div class="input-container">
@@ -124,7 +128,7 @@
     <button class="send">Envoyer</button>
   </div>
 
-  <script src="socket.io/socket.io.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>
 
   <!-- 7) Script pour le switch thème ---------------------------------------->
