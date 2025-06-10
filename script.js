@@ -1,33 +1,23 @@
-let pseudo = '';
+const socket = io();
 
-document.getElementById('confirmPseudo').addEventListener('click', () => {
-  const input = document.getElementById('pseudoInput');
-  if (input.value.trim() !== '') {
-    pseudo = input.value.trim();
-    document.getElementById('pseudoModal').style.display = 'none';
-  }
-});
+let pseudo = prompt("Ton pseudo ?")?.trim();
+socket.emit('pseudo', pseudo || 'Anonyme');
 
-// Connexion socket après que le pseudo soit défini
-const socket = io('https://votre-backend.onrender.com');
+const messagesList = document.getElementById('messages');
+const input = document.getElementById('messageInput');
+const btn = document.querySelector('.send');
 
-
-
-// Envoi du message
-document.querySelector('.send').addEventListener('click', () => {
-  const input = document.getElementById('messageInput');
-  const message = input.value.trim();
-  if (message && pseudo) {
-    socket.emit('chat message', { pseudo, message });
-    input.value = '';
-  }
-});
-
-// Affichage du message
-const messages = document.getElementById('messages');
-socket.on('chat message', (data) => {
+socket.on('message', data => {
   const li = document.createElement('li');
   li.innerHTML = `<strong>${data.pseudo}</strong>: ${data.message}`;
-  messages.appendChild(li);
-  messages.scrollTop = messages.scrollHeight;
+  messagesList.appendChild(li);
+  messagesList.scrollTop = messagesList.scrollHeight;
+});
+
+btn.addEventListener('click', () => {
+  const msg = input.value.trim();
+  if (msg) {
+    socket.emit('message', msg);
+    input.value = '';
+  }
 });

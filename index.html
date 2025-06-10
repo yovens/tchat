@@ -5,17 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tchat entre potes</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
 </head>
-
-
 <body>
   <button id="toggleTheme" title="Changer de thème">☀️</button>
-<div id="pseudoModal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:1000;">
-  <h2>Choisis ton pseudo</h2>
-  <input id="pseudoInput" placeholder="Ton pseudo" style="padding:10px;font-size:16px;border-radius:8px;border:1px solid #ccc;margin-top:10px;" />
-  <button id="confirmPseudo" style="margin-top:10px;padding:10px 20px;font-size:16px;background:var(--primary);color:white;border:none;border-radius:8px;cursor:pointer;">Valider</button>
-</div>
 
   <h1>💬 Tchat entre potes</h1>
   <ul id="messages"></ul>
@@ -25,11 +17,46 @@
     <button class="send">Envoyer</button>
   </div>
 
-  <script src="https://votre-backend.onrender.com/socket.io/socket.io.js"></script>
-
-  <script src="script.js"></script>
-
+  <script src="/socket.io/socket.io.js"></script>
   <script>
+    const socket = io();
+
+    // 1. Demande de pseudo
+    let pseudo = prompt("Entre ton pseudo :")?.trim();
+    if (!pseudo) pseudo = 'Anonyme';
+    socket.emit('pseudo', pseudo);
+
+    // 2. Réception des messages
+    const messagesList = document.getElementById('messages');
+    const input = document.getElementById('messageInput');
+    const btn = document.querySelector('.send');
+
+    socket.on('message', data => {
+      const li = document.createElement('li');
+      if (data.pseudo === 'Système') {
+        li.classList.add('system-message');
+        li.textContent = data.message;
+      } else {
+        li.innerHTML = `<strong>${data.pseudo}</strong> : ${data.message}`;
+      }
+      messagesList.appendChild(li);
+      messagesList.scrollTop = messagesList.scrollHeight;
+    });
+
+    // 3. Envoi de message
+    btn.addEventListener('click', () => {
+      const msg = input.value.trim();
+      if (msg) {
+        socket.emit('message', msg);
+        input.value = '';
+      }
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') btn.click();
+    });
+
+    // 4. Thème sombre
     const btnTheme = document.getElementById('toggleTheme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const saved = localStorage.getItem('theme');
