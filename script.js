@@ -9,7 +9,8 @@ document.getElementById('confirmPseudo').addEventListener('click', () => {
 });
 
 // Connexion socket après que le pseudo soit défini
-const socket = io();
+const socket = io(window.location.origin);
+
 
 // Envoi du message
 document.querySelector('.send').addEventListener('click', () => {
