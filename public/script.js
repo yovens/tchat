@@ -1,4 +1,5 @@
-const socket = io();
+const socket = io(); // ou io(window.location.origin); ← ça détecte l'adresse automatiquement
+
 
 let pseudo = "";
 while (!pseudo || pseudo.length < 2) {
