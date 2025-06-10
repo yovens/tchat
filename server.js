@@ -21,6 +21,14 @@ socket.on('chat message', (data) => {
   io.emit('chat message', data);
 });
 
+io.on('connection', (socket) => {
+  console.log('Nouvelle connexion');
+
+  socket.on('chat message', (data) => {
+    // data = { pseudo: 'nom', message: 'texte' }
+    io.emit('chat message', data);
+  });
+});
 
 
   socket.on('disconnect', () => {
