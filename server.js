@@ -1,43 +1,56 @@
 const express = require('express');
 const app = express();
-const http = require('http').createServer(app);
+const http = require('http');
+const cors = require('cors');
+const server = http.createServer(app);
 const { Server } = require('socket.io');
-const io = new Server(http);
-const path = require('path');
 
-// Sert les fichiers statiques comme script.js
-app.use(express.static(__dirname));
+// Autoriser CORS pou tout orijin (Render, localhost, elatriye)
+app.use(cors({
+  origin: '*'
+}));
 
-// Sert le fichier index.html manuellement
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+// Serveur Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
 });
 
-// Socket.io - gestion des messages
-io.on('connection', (socket) => {
-  console.log('✅ Un utilisateur est connecté');
+// Serveur dosye statik si w gen frontend nan menm app
+// app.use(express.static('public')); // ou retire si frontend separe
 
-socket.on('chat message', (data) => {
-  io.emit('chat message', data);
-});
+// Mape pou pseudo
+const users = {};
 
 io.on('connection', (socket) => {
-  console.log('Nouvelle connexion');
+  console.log('✅ Nouvo koneksyon:', socket.id);
 
-  socket.on('chat message', (data) => {
-    // data = { pseudo: 'nom', message: 'texte' }
-    io.emit('chat message', data);
+  // Lè yon pseudo voye
+  socket.on('pseudo', (pseudo) => {
+    users[socket.id] = pseudo;
+    socket.broadcast.emit('message', { pseudo: 'Système', message: `${pseudo} a rejoint le chat.` });
   });
-});
 
+  // Lè yon mesaj voye
+  socket.on('message', (msg) => {
+    const pseudo = users[socket.id] || 'Anonyme';
+    io.emit('message', { pseudo, message: msg });
+  });
 
+  // Lè itilizatè dekonekte
   socket.on('disconnect', () => {
-    console.log('❌ Un utilisateur est déconnecté');
+    const pseudo = users[socket.id];
+    if (pseudo) {
+      socket.broadcast.emit('message', { pseudo: 'Système', message: `${pseudo} a quitté le chat.` });
+      delete users[socket.id];
+    }
   });
 });
 
-// Lancement du serveur
+// Port pou Render oswa lokal
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => {
-  console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
+server.listen(PORT, () => {
+  console.log(`🚀 Serveur Socket.IO en écoute sur le port ${PORT}`);
 });

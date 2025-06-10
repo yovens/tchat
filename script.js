@@ -9,7 +9,8 @@ document.getElementById('confirmPseudo').addEventListener('click', () => {
 });
 
 // Connexion socket après que le pseudo soit défini
-const socket = io(window.location.origin);
+const socket = io('https://votre-backend.onrender.com');
+
 
 
 // Envoi du message
